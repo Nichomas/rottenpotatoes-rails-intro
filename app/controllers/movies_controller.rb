@@ -12,26 +12,33 @@ class MoviesController < ApplicationController
 
   def index
     @all_ratings = ['G', 'PG', 'PG-13', 'R']
-   
-    if params[:ratings]
-      
-      @movies = Movie.where(rating: params[:rating].keys)
-    end
-   
-   
-    case params[:sort]
     
-    when 'title'
-        @movies = Movie.order("title ASC")
+    session[:ratings] = params[:ratings] if params[:ratings]
+    session[:sort]    = params[:sort]    if params[:sort]
+    
+    if session[:ratings] || session[:sort]
+      case session[:sort]
+      when 'title'
         @title_sel = 'hilite'
-    when 'release'    
-        @movies = Movie.order('release_date ASC')
+      when 'release_date'
         @release_sel = 'hilite'
-    else
+      end
+      
+      session[:ratings] ||= @all_ratings
+      ratings = session[:ratings]
+      ratings = ratings.keys if ratings.respond_to?(:keys)
+      @movies = Movie.find(:all,
+                           order: session[:sort],
+                           conditions: ["rating IN (?)", ratings])
+   
+      else
       @movies = Movie.all
-      params[:ratings] ? @movies = Movie.where(rating: params[:ratings].keys):
-                         @movies = Movie.all
+      
                          
+    end
+    
+    if session[:ratings] != params[:ratings] || session[:sort] != params[:sort]
+       redirect_to movies_path(ratings: session[:ratings], sort: session[:sort])
     end
   end
 
