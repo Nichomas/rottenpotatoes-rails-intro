@@ -21,7 +21,6 @@ class MoviesController < ApplicationController
     when 'release'    
         @movies = Movie.order('release_date ASC')
         @release_sel = 'hilite'
-        
     else
       @movies = Movie.all
     end
